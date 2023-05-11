@@ -2,10 +2,11 @@
 ## Custom notes for using in UzL OMICS cluster for PacBIO and Nanopore data
 Convert either VCF or TSV files to BED format using:
 
-        # The proper way
+        # The proper way. Only selects DEL, DUP, and INS
         /Users/sreenivasan/Documents/Works/scripts/CADD-SV_UzL/vcfgz_to_bed.sh <vcfgz_file>
 
         # Does not account for numbering difference between VCF and BED format
+        # Converts INV to DEL
         Rscript /data/humangen_mouse/CADD-SV/tsv_to_BED_for_cadd_sv.R <tsv_file> <samplename>
 
 
