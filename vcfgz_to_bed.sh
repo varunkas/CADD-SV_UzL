@@ -12,6 +12,7 @@ gunzip "${file}.vcf.gz"
 
 # convert to bedfile and extract required columns for CADD-SV. Keep only DEL, DUP, and INS
 SURVIVOR vcftobed ${file}.vcf 0 -1 tmp_${file}.bed
+gzip ${file}.vcf
 
 cut -f1,2,6,11 tmp_${file}.bed | grep -E 'DEL|INS|DUP' | grep -v -E '_random|_alt|chrUn|chrM'  > ${file}.bed && rm tmp_${file}.bed
 
