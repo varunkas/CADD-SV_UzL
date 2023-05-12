@@ -6,3 +6,4 @@ channels:
 dependencies:
   - survivor=1.0.7
   - ucsc-liftover=377
+  - bedtools
