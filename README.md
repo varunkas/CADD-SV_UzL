@@ -1,14 +1,45 @@
 # CADD-SV 
-## Custom notes for using in UzL OMICS cluster for PacBIO and Nanopore data
-Convert either VCF or TSV files to BED format using:
+## Notes for using in UzL OMICS cluster for PacBIO and Nanopore data
 
-        # The proper way. Only selects DEL, DUP, and INS
-        /Users/sreenivasan/Documents/Works/scripts/CADD-SV_UzL/vcfgz_to_bed.sh <vcfgz_file>
+### Conversion of VCF.GZ to BED.
 
-        # Does not account for numbering difference between VCF and BED format
-        # Converts INV to DEL
-        Rscript /data/humangen_mouse/CADD-SV/tsv_to_BED_for_cadd_sv.R <tsv_file> <samplename>
+Convert the pbsv.vcf.gz to bedfile using the following script. Do not use the annotated vcf because some variants go missing during the annotation.
 
+        Only selects DEL, DUP, and INS
+        /Users/sreenivasan/Documents/Works/scripts/CADD-SV_UzL/vcfgz_to_bed.sh <vcfgz_file> <name>
+    
+The ```<name>``` will be used as the 5th column in the output bedfile. This way multiple bedfiles can be combined for a single CADD-SV run by using:
+
+        cat xx >> id_combined.unsorted.bed
+
+        # Sort using R, because bedtools sort also sorts based on the name column. Annoying!
+
+        R
+        bedfile <- read.table("id_combined.unsorted.bed", sep="\t", header=FALSE)
+        bedfile <- bedfile %>% arrange(V1, V2, V3)
+        write.table(bedfile, "id_combined.bed", sep="\t", row.names=FALSE, col.names=FALSE, quote=FALSE)
+
+Submit this for CADD-SV in the omics cluster using the command: 
+
+    ./cadd_sv_main.sh
+    # Note the config.yml might needs editing. 
+
+### Splitting of CADD-SV output
+The output ```combined_score.bed``` now contains the scores for all samples. This needs to be split using:
+
+    # Get unique names (col #5) from the first 1000 lines
+    names=$(tail -n +2 combined_score.bed | head -n 1000 | cut -f5 | sort | uniq)
+    
+    names=( "R21-007" "R21-015" "R22-005" "R22-016" )
+
+    # Split them
+    for name in $names
+    do
+        echo $name
+        awk -v name=$name 'BEGIN {OFS = "\t"} {if($5 == name) print chr$1, $2, $3, $4, $5, $6}' combined_score.bed > ${name}_cadd-sv_score.bed
+    done
+
+**Check the pacbio_custom_analysis repo for information on how to combine the CADD-SV scores with VEP annotations!!**
 
 ## CADD-SV – a framework to score the effect of structural variants 
 
